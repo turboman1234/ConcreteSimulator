@@ -1,70 +1,74 @@
-"L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c"
+"L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_wwdg.c"
 -std=c99
 -ferror-limit=100
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/../Libraries/CMSIS/Device/ST/STM32F4xx/Include
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/../Libraries/CMSIS/Device/ST/STM32F4xx/Include
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/../Libraries/CMSIS/Device/ST/STM32F4xx/Source/Templates
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/../Libraries/CMSIS/Device/ST/STM32F4xx/Source/Templates
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/../Libraries/STM32F4xx_StdPeriph_Driver/inc
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/../Libraries/STM32F4xx_StdPeriph_Driver/inc
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/RCC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/RCC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/ADC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/ADC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/DAC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/DAC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/UserLibrary
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/UserLibrary
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/Definitions
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/Definitions
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/VTimers
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/VTimers
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/USART
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/USART
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/Serial
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/Serial
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/ModBusSlave
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/ModBusSlave
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/MyTimers
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/MyTimers
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator/RS232
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/RS232
+-I
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator/Simulators
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\inc
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\arm\inc\c
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Libraries\CMSIS\Device\ST\STM32F4xx\Include
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Libraries\CMSIS\Device\ST\STM32F4xx\Include
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Libraries\STM32F4xx_StdPeriph_Driver\inc
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Libraries\STM32F4xx_StdPeriph_Driver\inc
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\RCC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\RCC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\ADC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\ADC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\DAC
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\DAC
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\UserLibrary
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\UserLibrary
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\Definitions
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\Definitions
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\VTimers
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\VTimers
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\USART
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\USART
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\Serial
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\Serial
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\ModBusSlave
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\ModBusSlave
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\MyTimers
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\MyTimers
 -I
-L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\RS232
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\RS232
+-I
+L:\Programming Projects\GitWork\За архива\STM32F4---ConcreteSimulator\Simulator\Simulators
 -DUSE_STDPERIPH_DRIVER=1
 -DSTM32F40XX=1
 -D__CHAR_BITS__=8
@@ -270,8 +274,8 @@ L:\Programming Projects\GitWork\За архива\ConcreteSimulator\Simulator\RS232
 -D__HAS_LOCATED_WITH_INIT__=1
 -D__IAR_COMPILERBASE__=594176
 -D_GOANNA=1
--D__DATE__="Mar 11 2016"
--D__TIME__="17:48:39"
+-D__DATE__="Mar 13 2016"
+-D__TIME__="12:52:43"
 -D__STDC__=1
 -D__STDC_VERSION__=199901L
 -D__STDC_HOSTED__=1

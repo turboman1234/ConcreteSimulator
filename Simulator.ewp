@@ -317,6 +317,7 @@
           <state>$PROJ_DIR$/ModBusSlave</state>
           <state>$PROJ_DIR$/MyTimers</state>
           <state>$PROJ_DIR$/RS232</state>
+          <state>$PROJ_DIR$/Simulators</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1972,6 +1973,15 @@
     </file>
     <file>
       <name>$PROJ_DIR$\Serial\serial.h</name>
+    </file>
+  </group>
+  <group>
+    <name>Simulators</name>
+    <file>
+      <name>$PROJ_DIR$\Simulators\simulators.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\Simulators\simulators.h</name>
     </file>
   </group>
   <group>
