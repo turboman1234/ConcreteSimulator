@@ -1,6 +1,8 @@
 #ifndef _MBSLAVE_H
 #define _MBSLAVE_H
 
+#include "definitions.h"
+
 // -------- Modbus Address ranges ---------------------
 #define HOLDING_REGISTERS_NUMBER        			100
 #define INPUTS_NUMBER                                           16
@@ -12,7 +14,6 @@
 
 #define INVALID_SLAVE_INDEX                                     0x0000FFFF
 
-typedef unsigned char BOOL;
 
 typedef struct Slave{
     unsigned char address;

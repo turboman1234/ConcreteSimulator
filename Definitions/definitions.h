@@ -156,6 +156,6 @@
 
 #define IS_USART_ID_VALID (usartID)             (((usartID) == USART_2) || \
                                                  ((usartID) == USART_3))
-
+typedef unsigned char BOOL;
 
 #endif
