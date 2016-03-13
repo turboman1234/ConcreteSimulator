@@ -11,7 +11,7 @@
 #include "serial.h"
 #include "mbslave.h"
 #include "rs232.h"
-
+#include "simulators.h"
 
 extern RCC_ClocksTypeDef MYCLOCKS;
 extern ModBusSlaveUnit ModBusSlaves[MAX_MODBUS_SLAVE_DEVICES];
@@ -31,7 +31,7 @@ int trimmer1, trimmer2, trimmer3;
 
 int main()
 {   
-    
+    InertScaleSimulator();
 //    //ADC test
 //    InitTrimmer(TRIMMER_1);
 //    InitDAC(DAC_2, MIN_ANALOG_VALUE_12b);
