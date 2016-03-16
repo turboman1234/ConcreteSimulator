@@ -25,15 +25,25 @@
 //Timers
 #define DOSE_SAND_TIMER                         TIMER_1
 #define DOSE_GRAVEL_TIMER                       TIMER_2
+#define DOSE_CEMENT_TIMER                       TIMER_3
+#define DOSE_WATER_TIMER                        TIMER_4
+#define CART_READY_TIMER                        TIMER_5
+#define CART_UP_TIMER                           TIMER_6
 
 //Simulators' constants
 #define CART_WEIGHT                             650.0
-#define SAND_VELOCITY                           1
-#define GRAVEL_VELOCITY                         2
+#define SAND_VELOCITY                           1.0
+#define GRAVEL_VELOCITY                         2.0
+#define CEMENT_VELOCITY                         1.0
+#define WATER_VELOCITY                          2.0
+
+//Types - it is used inductive sensor which return logical 1 when current valve is closed and logical 0 - when it is opened
+#define OPENED                                  OFF
+#define CLOSED                                  ON
 
 //Inert Scale's states
 typedef enum{
-    eInertScaleIdle = 0xAA,
+    eInertScaleIdle = 0xA0,
     eInertScaleDoseSand,
     eInertScaleDoseGravel,
     eInertScaleDoseSandAndGravel,
@@ -43,11 +53,28 @@ typedef enum{
     eInertScaleAlarm
 }tInertScaleStates;
 
-//
+//Cement and water scales' states
+typedef enum{
+    eIdle = 0xB0,
+    eDosing,
+    eCalming,
+    eEmptying
+}tCementAndWaterScaleStates;
+
+//Cart's states
+typedef enum{
+    eDown = 0xC0,
+    eReady,
+    eUp
+}tCartStates;
 
 
+void InitInertScaleSimulator(void);
+void InitCementScale(void);
+void InitWaterScale(void);
 
 void InertScaleSimulator(void);
-void InitInertScaleSimulator(void);
+void CementScaleSimulator(void);
+void WaterScaleSimulator(void);
 
 #endif

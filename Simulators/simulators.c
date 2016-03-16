@@ -18,26 +18,64 @@ unsigned char skipCartUpCmd;
 unsigned char skipCartDownCmd;
 
 //Outputs
-unsigned char emptyCementFbk;
-unsigned char emptyWaterFbk;
+unsigned char emptyCementValve;
+unsigned char emptyWaterValve;
 unsigned char openCloseMixerFbk;
 unsigned char cartIsUpFbk;
 unsigned char cartIsReadyFbk;
 unsigned char cartIsDownFbk;
 unsigned char emergencyStopBtnFbk;
 unsigned char looseSkipCartRopeFbk;
-float currentScaleValue, oldScaleValue;
+float currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
 
 //State Variable
 tInertScaleStates inertScaleState;
+tCementAndWaterScaleStates cementScaleState;
+tCementAndWaterScaleStates waterScaleState;
+tCartStates cartState;
 
 //Variables
 BOOL cartIsEmpty;
+unsigned char secondsForDownToReady, secondsForReadyToUp;
 
+void InitCementScale(void)
+{
+    emptyCementValve = CLOSED;
+    SetDigitalOutput(EMPTY_CEMENT_OUTPUT, emptyCementValve);
+    cementScaleState = eIdle;
+}
+
+void InitWaterScale(void)
+{
+    emptyWaterValve = CLOSED;
+    SetDigitalOutput(EMPTY_WATER_OUTPUT, emptyWaterValve);
+    waterScaleState = eIdle;
+}
+
+void InitCartSimulator(void)
+{
+    cartIsDownFbk = ON;
+    cartIsReadyFbk = OFF;
+    cartIsUpFbk = OFF;
+    
+    SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+    SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+    SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+    
+    cartIsEmpty = TRUE;
+    
+    secondsForDownToReady = 0;
+    secondsForDownToReady = 0;
+    
+    cartState = eDown;
+}
 
 void InitInertScaleSimulator(void)
 {
     inertScaleState = eInertScaleIdle;
+    
+    looseSkipCartRopeFbk = OFF;
+    SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
 }
 
 void InertScaleSimulator(void)
@@ -49,7 +87,6 @@ void InertScaleSimulator(void)
             //it is assumed cart is over the scale
             oldScaleValue = 0.0;
             currentScaleValue = 0.0;
-            cartIsEmpty = TRUE;
             
             //read needed sensors
             doseSandCmd = GetDigitalInput(DOSE_SAND_INPUT);
@@ -351,6 +388,353 @@ void InertScaleSimulator(void)
         
     case eInertScaleAlarm:
         //Print message to display and wait for restart simulator
+        looseSkipCartRopeFbk = ON;
+        SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
         break;
     }
 }
+
+
+void CementScaleSimulator(void)
+{
+    switch(cementScaleState)
+    {
+    case eIdle:
+        {
+            cementScaleValue = 0.0;
+
+            //set feedback sensor value
+            emptyCementValve = CLOSED;
+            SetDigitalOutput(EMPTY_CEMENT_OUTPUT, emptyCementValve);            
+
+            //read needed sensors
+            doseCementCmd = GetDigitalInput(DOSE_CEMENT_INPUT);
+            emptyCementCmd = GetDigitalInput(EMPTY_CEMENT_INPUT);        
+            
+            //check predicates
+            
+            //1. If cement valve is opened, cement scale could not work properly (it will not dose cement)
+            if(emptyCementCmd == ON)
+            {
+                cementScaleState = eEmptying;
+            }
+            //2. Dose cement 
+            else if(doseCementCmd == ON)
+            {
+                cementScaleState = eDosing;
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+            }
+            break;
+        }
+    case eDosing:
+        {
+            if(IsVTimerElapsed(DOSE_CEMENT_TIMER) == ELAPSED)
+            {
+                cementScaleValue = cementScaleValue + CEMENT_VELOCITY;
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+            }
+
+            //set feedback sensor value
+            emptyCementValve = CLOSED;
+            SetDigitalOutput(EMPTY_CEMENT_OUTPUT, emptyCementValve);
+            
+            //read needed sensors
+            doseCementCmd = GetDigitalInput(DOSE_CEMENT_INPUT);
+            emptyCementCmd = GetDigitalInput(EMPTY_CEMENT_INPUT);
+            
+            //check predicates
+            
+            //1. If cement valve is opened, cement scale could not work properly (it will not dose cement)
+            if(emptyCementCmd == ON)
+            {
+                cementScaleState = eEmptying;
+            }
+            //2. Stop cement dosing
+            else if(doseCementCmd == OFF)
+            {
+                cementScaleState = eCalming;
+                
+                cementScaleValue = (float)(rand() % 10); //10 = 10 * CEMENT_VELOCITY
+            }
+            
+            break;
+        }
+    case eCalming:
+        {
+            //cement scale value is constant
+            
+            //set feedback sensor value
+            emptyCementValve = CLOSED;
+            SetDigitalOutput(EMPTY_CEMENT_OUTPUT, emptyCementValve);
+            
+            //read needed sensors
+            doseCementCmd = GetDigitalInput(DOSE_CEMENT_INPUT);
+            emptyCementCmd = GetDigitalInput(EMPTY_CEMENT_INPUT);
+            
+            //check predicates
+            
+            //1. If cement valve is opened, dosing quantity falls 
+            if(emptyCementCmd == ON)
+            {
+                cementScaleState = eEmptying;
+            }
+            //2.Dose cement
+            else if(doseCementCmd == ON)
+            {
+                cementScaleState = eDosing;
+                
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+            }            
+            
+            break;
+        }
+    case eEmptying:
+        {
+            //cement scale is emptying
+            cementScaleValue = 0.0;
+            
+            //set feedback sensor value
+            emptyCementValve = OPENED;
+            SetDigitalOutput(EMPTY_CEMENT_OUTPUT, emptyCementValve);
+            
+            //read needed sensors
+            emptyCementCmd = GetDigitalInput(EMPTY_CEMENT_INPUT);
+            
+            //check predicates
+            
+            //1. If cement valve is opened, dosing quantity falls 
+            if(emptyCementCmd == OFF)
+            {
+                cementScaleState = eIdle;
+            }
+            
+            break;
+        }
+    }
+}
+
+void WaterScaleSimulator(void)
+{
+    switch(waterScaleState)
+    {
+    case eIdle:
+        {
+            waterScaleValue = 0.0;
+
+            //set feedback sensor value
+            emptyWaterValve = CLOSED;
+            SetDigitalOutput(EMPTY_WATER_OUTPUT, emptyWaterValve);            
+
+            //read needed sensors
+            doseWaterCmd = GetDigitalInput(DOSE_WATER_INPUT);
+            emptyWaterCmd = GetDigitalInput(EMPTY_WATER_INPUT);        
+            
+            //check predicates
+            
+            //1. If water valve is opened, water scale could not work properly (it will not dose water)
+            if(emptyWaterCmd == ON)
+            {
+                waterScaleState = eEmptying;
+            }
+            //2. Dose water 
+            else if(doseWaterCmd == ON)
+            {
+                waterScaleState = eDosing;
+                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+            }
+            break;
+        }
+    case eDosing:
+        {
+            if(IsVTimerElapsed(DOSE_WATER_TIMER) == ELAPSED)
+            {
+                waterScaleValue = waterScaleValue + WATER_VELOCITY;
+                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+            }
+
+            //set feedback sensor value
+            emptyWaterValve = CLOSED;
+            SetDigitalOutput(EMPTY_WATER_OUTPUT, emptyWaterValve);            
+            
+            //read needed sensors
+            doseWaterCmd = GetDigitalInput(DOSE_WATER_INPUT);
+            emptyWaterCmd = GetDigitalInput(EMPTY_WATER_INPUT);        
+                        
+            //check predicates
+            
+            //1. If water valve is opened, water scale could not work properly (it will not dose water)
+            if(emptyWaterCmd == ON)
+            {
+                waterScaleState = eEmptying;
+            }
+            //2. Stop water dosing
+            else if(doseWaterCmd == OFF)
+            {
+                waterScaleState = eCalming;
+                
+                waterScaleValue = (float)(rand() % 20); //20 = 10 * WATER_VELOCITY
+            }
+            
+            break;
+        }
+    case eCalming:
+        {
+            //water scale value is constant
+            
+            //set feedback sensor value
+            emptyWaterValve = CLOSED;
+            SetDigitalOutput(EMPTY_WATER_OUTPUT, emptyWaterValve);            
+            
+            //read needed sensors
+            doseWaterCmd = GetDigitalInput(DOSE_WATER_INPUT);
+            emptyWaterCmd = GetDigitalInput(EMPTY_WATER_INPUT);        
+
+            //check predicates
+            
+            //1. If water valve is opened, dosing quantity falls 
+            if(emptyWaterCmd == ON)
+            {
+                waterScaleState = eEmptying;
+            }
+            //2.Dose water
+            else if(doseWaterCmd == ON)
+            {
+                waterScaleState = eDosing;
+                
+                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+            }            
+            
+            break;
+        }
+    case eEmptying:
+        {
+            //water scale is emptying
+            waterScaleValue = 0.0;
+            
+            //set feedback sensor value
+            emptyWaterValve = OPENED;
+            SetDigitalOutput(EMPTY_WATER_OUTPUT, emptyWaterValve);
+            
+            //read needed sensors
+            emptyWaterCmd = GetDigitalInput(EMPTY_WATER_INPUT);
+            
+            //check predicates
+            
+            //1. If water valve is opened, dosing quantity falls 
+            if(emptyWaterCmd == OFF)
+            {
+                waterScaleState = eIdle;
+            }
+            
+            break;
+        }
+    }
+}
+
+void CartSimulator(void)
+{    
+    switch(cartState)
+    {
+    case eDown:
+        {
+            // cart is in down state
+            cartIsDownFbk = ON;
+            cartIsReadyFbk = OFF;                            
+            cartIsUpFbk = OFF;
+            
+            SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+            SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+            SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            
+            
+            //read needed input commands
+            skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            
+            //check predicate
+            if(skipCartUpCmd == ON)
+            {
+                cartState = eReady;
+                SetVTimerValue(CART_READY_TIMER, 5 * T_1_S);
+            }
+            
+            break;
+        }
+    case eReady:
+        {            
+            if(IsVTimerElapsed(CART_READY_TIMER) == NOT_ELAPSED)
+            {
+                //cart is still not reached ready position
+                cartIsDownFbk = OFF;
+                cartIsReadyFbk = OFF;                            
+                cartIsUpFbk = OFF;
+                
+                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            }
+            else
+            {
+                //cart is now in ready position
+                cartIsDownFbk = OFF;
+                cartIsReadyFbk = ON; // Must I use delay for waitng controller to take decision whether to stop cart or skip it up???????????
+                cartIsUpFbk = OFF;
+                
+                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            }
+            
+            //read needed input commands
+            skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
+            
+            //check predicate
+            if(skipCartUpCmd == ON)
+            {
+                cartState = eUp;
+                SetVTimerValue(CART_UP_TIMER, 3 * T_1_S);
+            }
+            else if(skipCartDownCmd == ON)
+            {
+                cartState = eDown;
+                SetVTimerValue(CART_READY_TIMER, (rand() % 5) * T_1_S); // (0-4) * T_1_S 
+            }
+            break;
+        }
+    case eUp:
+        {
+            if (IsVTimerElapsed(CART_UP_TIMER) == NOT_ELAPSED)
+            {
+                //cart is still not reached up position
+                cartIsDownFbk = OFF;
+                cartIsReadyFbk = OFF;                            
+                cartIsUpFbk = OFF;
+                
+                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            }
+            else
+            {
+                //cart is now in up position
+                cartIsDownFbk = OFF;
+                cartIsReadyFbk = OFF;                            
+                cartIsUpFbk = ON;
+                
+                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);                
+                
+                //now cart is empty
+                cartIsEmpty = TRUE;
+                
+                //read needed input
+                skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+                
+             
+            }
+            break;
+        }
+    }
+}
+
