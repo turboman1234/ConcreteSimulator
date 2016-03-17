@@ -27,8 +27,7 @@
 #define DOSE_GRAVEL_TIMER                       TIMER_2
 #define DOSE_CEMENT_TIMER                       TIMER_3
 #define DOSE_WATER_TIMER                        TIMER_4
-#define CART_READY_TIMER                        TIMER_5
-#define CART_UP_TIMER                           TIMER_6
+#define CART_TIMER                              TIMER_5
 
 //Simulators' constants
 #define CART_WEIGHT                             650.0
@@ -36,6 +35,8 @@
 #define GRAVEL_VELOCITY                         2.0
 #define CEMENT_VELOCITY                         1.0
 #define WATER_VELOCITY                          2.0
+#define MAX_SEC_BETWEEN_DOWN_AND_READY_STATE    5
+#define MAX_SEC_BETWEEN_UP_AND_READY_STATE      3
 
 //Types - it is used inductive sensor which return logical 1 when current valve is closed and logical 0 - when it is opened
 #define OPENED                                  OFF
@@ -64,8 +65,11 @@ typedef enum{
 //Cart's states
 typedef enum{
     eDown = 0xC0,
+    eMovingDownReadyDown,
     eReady,
-    eUp
+    eMovingReadyUpReady,
+    eUp,
+    eAlarm
 }tCartStates;
 
 

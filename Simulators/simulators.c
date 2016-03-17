@@ -36,7 +36,8 @@ tCartStates cartState;
 
 //Variables
 BOOL cartIsEmpty;
-unsigned char secondsForDownToReady, secondsForReadyToUp;
+BOOL cartIsInSteadyState;
+unsigned char secondsBetweenStates;
 
 void InitCementScale(void)
 {
@@ -63,9 +64,7 @@ void InitCartSimulator(void)
     SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
     
     cartIsEmpty = TRUE;
-    
-    secondsForDownToReady = 0;
-    secondsForDownToReady = 0;
+
     
     cartState = eDown;
 }
@@ -637,102 +636,215 @@ void CartSimulator(void)
     {
     case eDown:
         {
-            // cart is in down state
+            //set sensors    
             cartIsDownFbk = ON;
-            cartIsReadyFbk = OFF;                            
+            cartIsReadyFbk = OFF;
             cartIsUpFbk = OFF;
             
             SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
             SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
             SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
             
+            cartIsInSteadyState = TRUE;
             
-            //read needed input commands
             skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
             
-            //check predicate
-            if(skipCartUpCmd == ON)
+            if(skipCartUpCmd == ON && skipCartDownCmd == ON)
             {
-                cartState = eReady;
-                SetVTimerValue(CART_READY_TIMER, 5 * T_1_S);
+                cartState = eAlarm;
+            }
+            else if(skipCartUpCmd == ON)
+            {
+                SetVTimerValue(CART_TIMER, T_1_S);
+                secondsBetweenStates = MAX_SEC_BETWEEN_DOWN_AND_READY_STATE; //because in moving state it will decrease to 0
+                cartState = eMovingDownReadyDown;
+            }
+            
+            break;
+        }
+    case eMovingDownReadyDown:
+        {
+            //set sensors           
+            cartIsDownFbk = OFF;
+            cartIsReadyFbk = OFF;
+            cartIsUpFbk = OFF;
+            
+            SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+            SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+            SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            
+            cartIsInSteadyState = FALSE;
+            
+            //read input commands
+            skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
+            
+            if(skipCartUpCmd == ON && skipCartDownCmd == ON)
+            {
+                cartState = eAlarm;
+            }
+            else if(skipCartUpCmd == ON)
+            {
+                if(IsVTimerElapsed(CART_TIMER) == ELAPSED)
+                {
+                    if(secondsBetweenStates > 0)
+                    {
+                        secondsBetweenStates = secondsBetweenStates - 1;
+                        SetVTimerValue(CART_TIMER, T_1_S);
+                    }
+                    else
+                    {
+                        cartState = eReady;
+                    }
+                }
+            }
+            else if(skipCartDownCmd == ON)
+            {
+                if(IsVTimerElapsed(CART_TIMER) == ELAPSED)
+                {
+                    if(secondsBetweenStates < MAX_SEC_BETWEEN_DOWN_AND_READY_STATE)
+                    {
+                        secondsBetweenStates = secondsBetweenStates + 1;
+                        SetVTimerValue(CART_TIMER, T_1_S);
+                    }
+                    else
+                    {
+                        cartState = eDown;
+                    }
+                }
             }
             
             break;
         }
     case eReady:
-        {            
-            if(IsVTimerElapsed(CART_READY_TIMER) == NOT_ELAPSED)
+        {   
+            //set sensors   
+            cartIsDownFbk = OFF;
+            cartIsReadyFbk = ON;
+            cartIsUpFbk = OFF;
+            
+            SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+            SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+            SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            
+            if(cartIsInSteadyState == FALSE)
             {
-                //cart is still not reached ready position
-                cartIsDownFbk = OFF;
-                cartIsReadyFbk = OFF;                            
-                cartIsUpFbk = OFF;
-                
-                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
-                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
-                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
-            }
-            else
-            {
-                //cart is now in ready position
-                cartIsDownFbk = OFF;
-                cartIsReadyFbk = ON; // Must I use delay for waitng controller to take decision whether to stop cart or skip it up???????????
-                cartIsUpFbk = OFF;
-                
-                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
-                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
-                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+                cartIsInSteadyState = TRUE;
+                SetVTimerValue(CART_TIMER, T_1_S);
+                //simulate cart's and sensor's inertion and wait for controller reaction
+                while(IsVTimerElapsed(CART_TIMER) == NOT_ELAPSED);
             }
             
-            //read needed input commands
+            //read input commands
             skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
             skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
             
-            //check predicate
-            if(skipCartUpCmd == ON)
+            if(skipCartUpCmd == ON && skipCartDownCmd == ON)
             {
-                cartState = eUp;
-                SetVTimerValue(CART_UP_TIMER, 3 * T_1_S);
+                cartState = eAlarm;
+            }
+            else if(skipCartUpCmd == ON)
+            {
+                cartState = eMovingReadyUpReady;
+                SetVTimerValue(CART_TIMER, T_1_S);
+                secondsBetweenStates = 0; // because in moving state it will increase to Max Seconds Constant
             }
             else if(skipCartDownCmd == ON)
             {
-                cartState = eDown;
-                SetVTimerValue(CART_READY_TIMER, (rand() % 5) * T_1_S); // (0-4) * T_1_S 
+                cartState = eMovingDownReadyDown;
+                SetVTimerValue(CART_TIMER, T_1_S);
+                secondsBetweenStates = MAX_SEC_BETWEEN_DOWN_AND_READY_STATE; //because in moving state it will decrease to 0
+            }
+            
+            break;
+        }
+    case eMovingReadyUpReady:
+        {
+            //set sensors 
+            cartIsDownFbk = OFF;
+            cartIsReadyFbk = OFF;
+            cartIsUpFbk = OFF;
+            
+            SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+            SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+            SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            
+            cartIsInSteadyState = FALSE;
+            
+            //read input commands
+            skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
+            
+            if(skipCartUpCmd == ON && skipCartDownCmd == ON)
+            {
+                cartState = eAlarm;
+            }
+            else if(skipCartUpCmd == ON)
+            {
+                if(IsVTimerElapsed(CART_TIMER) == ELAPSED)
+                {
+                    if(secondsBetweenStates > 0)
+                    {
+                        secondsBetweenStates = secondsBetweenStates - 1;
+                        SetVTimerValue(CART_TIMER, T_1_S);
+                    }
+                    else
+                    {
+                        cartState = eUp;
+                    }
+                }
+            }
+            else if(skipCartDownCmd == ON)
+            {
+                if(IsVTimerElapsed(CART_TIMER) == ELAPSED)
+                {
+                    if(secondsBetweenStates < MAX_SEC_BETWEEN_UP_AND_READY_STATE)
+                    {
+                        secondsBetweenStates = secondsBetweenStates + 1;
+                        SetVTimerValue(CART_TIMER, T_1_S);
+                    }
+                    else
+                    {
+                        cartState = eReady;
+                    }
+                }
             }
             break;
         }
     case eUp:
         {
-            if (IsVTimerElapsed(CART_UP_TIMER) == NOT_ELAPSED)
+            //set sensors
+            cartIsDownFbk = OFF;
+            cartIsReadyFbk = OFF;
+            cartIsUpFbk = ON;
+            
+            SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
+            SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
+            SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+            
+            cartIsInSteadyState = TRUE;
+            
+            //read input commands
+            skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
+            skipCartDownCmd = GetDigitalInput(SKIP_CART_DOWN_INPUT);
+            
+            if(skipCartUpCmd == ON && skipCartDownCmd == ON)
             {
-                //cart is still not reached up position
-                cartIsDownFbk = OFF;
-                cartIsReadyFbk = OFF;                            
-                cartIsUpFbk = OFF;
-                
-                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
-                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
-                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
+                cartState = eAlarm;
             }
-            else
+            else if(skipCartDownCmd == ON)
             {
-                //cart is now in up position
-                cartIsDownFbk = OFF;
-                cartIsReadyFbk = OFF;                            
-                cartIsUpFbk = ON;
-                
-                SetDigitalOutput(SKIP_CART_DOWN_OUTPUT, cartIsDownFbk);
-                SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
-                SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);                
-                
-                //now cart is empty
-                cartIsEmpty = TRUE;
-                
-                //read needed input
-                skipCartUpCmd = GetDigitalInput(SKIP_CART_UP_INPUT);
-                
-             
+                cartState = eMovingReadyUpReady;
+                SetVTimerValue(CART_TIMER, T_1_S);
+                secondsBetweenStates = 0; //because in moving state it will decrease to 0
             }
+            
+            break;
+        }
+    case eAlarm:
+        {
+            //must wait until reset system
             break;
         }
     }
