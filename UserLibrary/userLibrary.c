@@ -469,22 +469,21 @@ void SetLED(int ledID, int state)
 void SetAnalogOutput(int dacOutput, int value)
 {
     assert_param(IS_DAC_ID_VALID(dacNumber));
+    assert_param(value >= 0 && value <= 4095);
     
-    if(value >= 0 && value <= 4095)
-    {    
-        switch(dacOutput)
-        {
-        case DAC_1:
-            DAC_SoftwareTriggerCmd(DAC_Channel_1, DISABLE);
-            DAC_SetChannel1Data(DAC_Align_12b_R, value);
-            DAC_SoftwareTriggerCmd(DAC_Channel_1, ENABLE);
-            break;
-        case DAC_2:
-            DAC_SoftwareTriggerCmd(DAC_Channel_2, DISABLE);
-            DAC_SetChannel2Data(DAC_Align_12b_R, value);
-            DAC_SoftwareTriggerCmd(DAC_Channel_2, ENABLE);
-            break;
-        }
+    switch(dacOutput)
+    {
+    case DAC_1:
+        DAC_SoftwareTriggerCmd(DAC_Channel_1, DISABLE);
+        DAC_SetChannel1Data(DAC_Align_12b_R, value);
+        DAC_SoftwareTriggerCmd(DAC_Channel_1, ENABLE);
+        break;
+    case DAC_2:
+        DAC_SoftwareTriggerCmd(DAC_Channel_2, DISABLE);
+        DAC_SetChannel2Data(DAC_Align_12b_R, value);
+        DAC_SoftwareTriggerCmd(DAC_Channel_2, ENABLE);
+        break;
     }
+    
 }
 
