@@ -31,7 +31,29 @@ int trimmer1, trimmer2, trimmer3;
 
 int main()
 {   
-    InertScaleSimulator();
+    InitRCC();
+    
+    InitNewMBSlaveDevices();
+    MBInitHardwareAndProtocol();
+    InitVTimers();
+    
+    InitInertScaleSimulator();
+    InitCementScale();
+    InitWaterScale();
+    InitCartSimulator();
+    InitMixerSimulator();
+    
+    while(1)
+    {
+        CartSimulator();
+        InertScaleSimulator();
+        CementScaleSimulator();
+        WaterScaleSimulator();
+        MixerSimulator();
+    }
+    
+    
+    /*  TEST 0 - ADC and DAC
 //    //ADC test
 //    InitTrimmer(TRIMMER_1);
 //    InitDAC(DAC_2, MIN_ANALOG_VALUE_12b);
@@ -47,7 +69,8 @@ int main()
 //        
 //        volts = 2.979 * ((float)dacValue / (float)MAX_ANALOG_VALUE_12b);
 //    } 
-
+*/
+    
     /*      TEST 1 - Running Light    
     TestLEDs();
     */
