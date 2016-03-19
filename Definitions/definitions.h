@@ -129,6 +129,7 @@
 
 #define T_10_MS		10
 #define T_100_MS	100
+#define T_500_MS        500
 #define T_1_S		1000
 
 #define IS_OUTPUT_STATE_VALID (STATE)          (((STATE) == ON) || \
