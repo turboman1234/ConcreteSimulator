@@ -3,8 +3,11 @@
 #include "definitions.h"
 #include "userLibrary.h"
 #include "VTimer.h"
+#include "mbslave.h"
 #include "simulators.h"
 
+
+extern ModBusSlaveUnit ModBusSlaves[MAX_MODBUS_SLAVE_DEVICES];
 
 //Inputs
 unsigned char doseSandCmd;
@@ -26,18 +29,20 @@ unsigned char cartIsReadyFbk;
 unsigned char cartIsDownFbk;
 unsigned char emergencyStopBtnFbk;
 unsigned char looseSkipCartRopeFbk;
-float currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
+short currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
 
 //State Variable
 tInertScaleStates inertScaleState;
 tCementAndWaterScaleStates cementScaleState;
 tCementAndWaterScaleStates waterScaleState;
 tCartStates cartState;
+tMixerStates mixerState;
 
 //Variables
 BOOL cartIsEmpty;
 BOOL cartIsInSteadyState;
 unsigned char secondsBetweenStates;
+unsigned char lastMixerCmd;
 
 void InitCementScale(void)
 {
@@ -64,9 +69,17 @@ void InitCartSimulator(void)
     SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
     
     cartIsEmpty = TRUE;
-
     
     cartState = eDown;
+}
+
+void InitMixerSimulator(void)
+{
+    mixerState = eMixerIsClosed;
+
+    lastMixerCmd = OFF;    
+    openCloseMixerFbk = CLOSED;
+    SetDigitalOutput(OPEN_CLOSE_MIXER_OUTPUT, openCloseMixerFbk);
 }
 
 void InitInertScaleSimulator(void)
@@ -77,6 +90,8 @@ void InitInertScaleSimulator(void)
     SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
 }
 
+
+
 void InertScaleSimulator(void)
 {
     switch(inertScaleState)
@@ -84,8 +99,8 @@ void InertScaleSimulator(void)
     case eInertScaleIdle:
         {
             //it is assumed cart is over the scale
-            oldScaleValue = 0.0;
-            currentScaleValue = 0.0;
+            oldScaleValue = 0;
+            currentScaleValue = 0;
             
             //read needed sensors
             doseSandCmd = GetDigitalInput(DOSE_SAND_INPUT);
@@ -107,20 +122,20 @@ void InertScaleSimulator(void)
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSandAndGravel;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             //4. Dose Sand
             else if(doseSandCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSand;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
             }
             //5. Dose Gravel
             else if(doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseGravel;
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             break;
         }
@@ -133,7 +148,7 @@ void InertScaleSimulator(void)
                 currentScaleValue = currentScaleValue + SAND_VELOCITY;
                 oldScaleValue = currentScaleValue;
                 cartIsEmpty = FALSE;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
             }
             
             //read needed sensors
@@ -150,7 +165,7 @@ void InertScaleSimulator(void)
             //2. Stop dose sand
             else if(doseSandCmd == OFF)
             {
-                currentScaleValue = (float)(rand() % 10); //10 = 10 * SAND_VELOCITY
+                currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT);
                 oldScaleValue = currentScaleValue;
                 
                 inertScaleState = eInertScaleCalming;
@@ -158,8 +173,8 @@ void InertScaleSimulator(void)
             //3. Dose sand and gravel
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);// does second timer need?????????????????????????????????does time have to be the same????????????????????
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);// does second timer need?????????????????????????????????does time have to be the same????????????????????
                 
                 inertScaleState = eInertScaleDoseSandAndGravel;
             }
@@ -174,7 +189,7 @@ void InertScaleSimulator(void)
                 currentScaleValue = currentScaleValue + GRAVEL_VELOCITY;
                 oldScaleValue = currentScaleValue;
                 cartIsEmpty = FALSE;
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             
             //read needed sensors
@@ -191,7 +206,7 @@ void InertScaleSimulator(void)
             //2. Stop dose gravel
             else if(doseGravelCmd == OFF)
             {
-                currentScaleValue = (float)(rand() % 20); //20 = 10 * GRAVEL_VELOCITY
+                currentScaleValue = currentScaleValue + (rand() % GRAVEL_MAX_TAIL_LENGHT);
                 oldScaleValue = currentScaleValue;
                 
                 inertScaleState = eInertScaleCalming;
@@ -199,8 +214,8 @@ void InertScaleSimulator(void)
             //3. Dose sand and gravel
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);// does second timer need?????????????????????????????????does time have to be the same????????????????????
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);// does second timer need?????????????????????????????????does time have to be the same????????????????????
                 
                 inertScaleState = eInertScaleDoseSandAndGravel;
             }
@@ -215,7 +230,7 @@ void InertScaleSimulator(void)
                 currentScaleValue = currentScaleValue + SAND_VELOCITY;
                 oldScaleValue = currentScaleValue;
                 cartIsEmpty = FALSE;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
             }
             
             if(IsVTimerElapsed(DOSE_GRAVEL_TIMER) == ELAPSED)
@@ -223,7 +238,7 @@ void InertScaleSimulator(void)
                 currentScaleValue = currentScaleValue + GRAVEL_VELOCITY;
                 oldScaleValue = currentScaleValue;
                 cartIsEmpty = FALSE;
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }    
             
             //read needed sensors
@@ -240,27 +255,27 @@ void InertScaleSimulator(void)
             //2. Stop dose gravel but still dose sand
             else if(doseGravelCmd == OFF && doseSandCmd == ON)
             {
-                currentScaleValue = (float)(rand() % 20); //20 = 10 * GRAVEL_VELOCITY
+                currentScaleValue = currentScaleValue + (rand() % GRAVEL_MAX_TAIL_LENGHT);
                 oldScaleValue = currentScaleValue;
                 
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
                 
                 inertScaleState = eInertScaleDoseSand;
             }
             //3. Stop dose sand but still dose gravel
             else if(doseGravelCmd == ON && doseSandCmd == OFF)
             {
-                currentScaleValue = (float)(rand() % 10); //10 = 10 * SAND_VELOCITY
+                currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT);
                 oldScaleValue = currentScaleValue;
                 
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
                 
                 inertScaleState = eInertScaleDoseGravel;
             }
             //4. Stop dose sand and gravel
             else if(doseSandCmd == OFF && doseGravelCmd == OFF)
             {
-                currentScaleValue = (float)((rand() % 10) + (rand() % 20));            
+                currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT) + (rand() % GRAVEL_MAX_TAIL_LENGHT);            
                 oldScaleValue = currentScaleValue;
                 
                 inertScaleState = eInertScaleCalming;
@@ -292,20 +307,20 @@ void InertScaleSimulator(void)
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSandAndGravel;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             //4. Dose Sand
             else if(doseSandCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSand;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
             }
             //5. Dose Gravel
             else if(doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseGravel;
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             
             break;
@@ -366,33 +381,37 @@ void InertScaleSimulator(void)
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSandAndGravel;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             //4. Dose Sand
             else if(doseSandCmd == ON)
             {
                 inertScaleState = eInertScaleDoseSand;
-                SetVTimerValue(DOSE_SAND_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
             }
             //5. Dose Gravel
             else if(doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleDoseGravel;
-                SetVTimerValue(DOSE_GRAVEL_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_GRAVEL_TIMER, T_500_MS);
             }
             
             break;
         }
         
     case eInertScaleAlarm:
-        //Print message to display and wait for restart simulator
-        looseSkipCartRopeFbk = ON;
-        SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
-        break;
+        {
+            //Print message to display and wait for restart simulator
+            looseSkipCartRopeFbk = ON;
+            SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
+            while(1);
+            break;
+        }
     }
+    
+    INERT_SCALE.holdingRegisters[0] = currentScaleValue;
 }
-
 
 void CementScaleSimulator(void)
 {
@@ -400,7 +419,7 @@ void CementScaleSimulator(void)
     {
     case eIdle:
         {
-            cementScaleValue = 0.0;
+            cementScaleValue = 0;
 
             //set feedback sensor value
             emptyCementValve = CLOSED;
@@ -421,7 +440,7 @@ void CementScaleSimulator(void)
             else if(doseCementCmd == ON)
             {
                 cementScaleState = eDosing;
-                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_500_MS);
             }
             break;
         }
@@ -430,7 +449,7 @@ void CementScaleSimulator(void)
             if(IsVTimerElapsed(DOSE_CEMENT_TIMER) == ELAPSED)
             {
                 cementScaleValue = cementScaleValue + CEMENT_VELOCITY;
-                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_500_MS);
             }
 
             //set feedback sensor value
@@ -453,7 +472,7 @@ void CementScaleSimulator(void)
             {
                 cementScaleState = eCalming;
                 
-                cementScaleValue = (float)(rand() % 10); //10 = 10 * CEMENT_VELOCITY
+                cementScaleValue = cementScaleValue + (rand() % CEMENT_MAX_TAIL_LENGHT); 
             }
             
             break;
@@ -482,7 +501,7 @@ void CementScaleSimulator(void)
             {
                 cementScaleState = eDosing;
                 
-                SetVTimerValue(DOSE_CEMENT_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_CEMENT_TIMER, T_500_MS);
             }            
             
             break;
@@ -490,7 +509,7 @@ void CementScaleSimulator(void)
     case eEmptying:
         {
             //cement scale is emptying
-            cementScaleValue = 0.0;
+            cementScaleValue = 0;
             
             //set feedback sensor value
             emptyCementValve = OPENED;
@@ -510,6 +529,8 @@ void CementScaleSimulator(void)
             break;
         }
     }
+    
+    SetAnalogOutput(CONCRETE_SCALE, cementScaleValue);
 }
 
 void WaterScaleSimulator(void)
@@ -518,7 +539,7 @@ void WaterScaleSimulator(void)
     {
     case eIdle:
         {
-            waterScaleValue = 0.0;
+            waterScaleValue = 0;
 
             //set feedback sensor value
             emptyWaterValve = CLOSED;
@@ -539,7 +560,7 @@ void WaterScaleSimulator(void)
             else if(doseWaterCmd == ON)
             {
                 waterScaleState = eDosing;
-                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_WATER_TIMER, T_500_MS);
             }
             break;
         }
@@ -548,7 +569,7 @@ void WaterScaleSimulator(void)
             if(IsVTimerElapsed(DOSE_WATER_TIMER) == ELAPSED)
             {
                 waterScaleValue = waterScaleValue + WATER_VELOCITY;
-                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_WATER_TIMER, T_500_MS);
             }
 
             //set feedback sensor value
@@ -571,7 +592,7 @@ void WaterScaleSimulator(void)
             {
                 waterScaleState = eCalming;
                 
-                waterScaleValue = (float)(rand() % 20); //20 = 10 * WATER_VELOCITY
+                waterScaleValue = rand() % WATER_MAX_TAIL_LENGHT;
             }
             
             break;
@@ -600,7 +621,7 @@ void WaterScaleSimulator(void)
             {
                 waterScaleState = eDosing;
                 
-                SetVTimerValue(DOSE_WATER_TIMER, T_10_MS);
+                SetVTimerValue(DOSE_WATER_TIMER, T_500_MS);
             }            
             
             break;
@@ -608,7 +629,7 @@ void WaterScaleSimulator(void)
     case eEmptying:
         {
             //water scale is emptying
-            waterScaleValue = 0.0;
+            waterScaleValue = 0;
             
             //set feedback sensor value
             emptyWaterValve = OPENED;
@@ -628,6 +649,8 @@ void WaterScaleSimulator(void)
             break;
         }
     }
+    
+    WATER_SCALE.holdingRegisters[0] = waterScaleValue;
 }
 
 void CartSimulator(void)
@@ -748,13 +771,13 @@ void CartSimulator(void)
             {
                 cartState = eMovingReadyUpReady;
                 SetVTimerValue(CART_TIMER, T_1_S);
-                secondsBetweenStates = 0; // because in moving state it will increase to Max Seconds Constant
+                secondsBetweenStates = MAX_SEC_BETWEEN_UP_AND_READY_STATE; // because in moving state it will decrease to 0
             }
             else if(skipCartDownCmd == ON)
             {
                 cartState = eMovingDownReadyDown;
                 SetVTimerValue(CART_TIMER, T_1_S);
-                secondsBetweenStates = MAX_SEC_BETWEEN_DOWN_AND_READY_STATE; //because in moving state it will decrease to 0
+                secondsBetweenStates = 0; //because in moving state it will increase to Max Seconds Constant
             }
             
             break;
@@ -837,7 +860,7 @@ void CartSimulator(void)
             {
                 cartState = eMovingReadyUpReady;
                 SetVTimerValue(CART_TIMER, T_1_S);
-                secondsBetweenStates = 0; //because in moving state it will decrease to 0
+                secondsBetweenStates = 0; //because in moving state it will increase to Max Seconds Constant
             }
             
             break;
@@ -845,8 +868,55 @@ void CartSimulator(void)
     case eAlarm:
         {
             //must wait until reset system
+            while(1);
             break;
         }
     }
 }
+
+void MixerSimulator(void)
+{
+    switch(mixerState)
+    {
+    case eMixerIsClosed:
+        {
+            openCloseMixerFbk = CLOSED;
+            SetDigitalOutput(OPEN_CLOSE_MIXER_OUTPUT, openCloseMixerFbk);
+            
+            openCloseMixerCmd = GetDigitalInput(OPEN_CLOSE_MIXER_INPUT);
+            
+            if(openCloseMixerCmd == OFF && lastMixerCmd == ON)
+            {
+                lastMixerCmd = OFF;
+            }          
+            else if(openCloseMixerCmd == ON && lastMixerCmd == OFF)
+            {
+                lastMixerCmd = ON;
+                mixerState = eMixerIsOpened;
+            }
+            
+            break;
+        }
+    case eMixerIsOpened:
+        {
+            openCloseMixerFbk = OPENED;
+            SetDigitalOutput(OPEN_CLOSE_MIXER_OUTPUT, openCloseMixerFbk);
+            
+            openCloseMixerCmd = GetDigitalInput(OPEN_CLOSE_MIXER_INPUT);
+            
+            if(openCloseMixerCmd == OFF && lastMixerCmd == ON)
+            {
+                lastMixerCmd = OFF;
+            }          
+            else if(openCloseMixerCmd == ON && lastMixerCmd == OFF)
+            {
+                lastMixerCmd = ON;
+                mixerState = eMixerIsClosed;
+            }
+            break;
+        }
+    }
+}
+
+
 

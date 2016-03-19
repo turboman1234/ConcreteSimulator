@@ -21,6 +21,9 @@
 #define SKIP_CART_READY_OUTPUT                  OUTPUT_6
 #define EMRGENCY_STOP_BUTTON_OUTPUT             OUTPUT_7
 #define LOOSE_SKIP_CART_ROPE_OUTPUT             OUTPUT_8
+#define INERT_SCALE                             ModBusSlaves[0]
+#define WATER_SCALE                             ModBusSlaves[1]
+#define CONCRETE_SCALE                          DAC_1
 
 //Timers
 #define DOSE_SAND_TIMER                         TIMER_1
@@ -30,13 +33,17 @@
 #define CART_TIMER                              TIMER_5
 
 //Simulators' constants
-#define CART_WEIGHT                             650.0
-#define SAND_VELOCITY                           1.0
-#define GRAVEL_VELOCITY                         2.0
-#define CEMENT_VELOCITY                         1.0
-#define WATER_VELOCITY                          2.0
-#define MAX_SEC_BETWEEN_DOWN_AND_READY_STATE    5
-#define MAX_SEC_BETWEEN_UP_AND_READY_STATE      3
+#define CART_WEIGHT                             650
+#define SAND_VELOCITY                           2
+#define SAND_MAX_TAIL_LENGHT                    5                       
+#define GRAVEL_VELOCITY                         4
+#define GRAVEL_MAX_TAIL_LENGHT                  7
+#define CEMENT_VELOCITY                         1
+#define CEMENT_MAX_TAIL_LENGHT                  3
+#define WATER_VELOCITY                          2
+#define WATER_MAX_TAIL_LENGHT                   5
+#define MAX_SEC_BETWEEN_DOWN_AND_READY_STATE    10
+#define MAX_SEC_BETWEEN_UP_AND_READY_STATE      5
 
 //Types - it is used inductive sensor which return logical 1 when current valve is closed and logical 0 - when it is opened
 #define OPENED                                  OFF
@@ -72,13 +79,22 @@ typedef enum{
     eAlarm
 }tCartStates;
 
+//Mixer's states
+typedef enum{
+    eMixerIsClosed = 0xD0,
+    eMixerIsOpened
+}tMixerStates;
 
 void InitInertScaleSimulator(void);
 void InitCementScale(void);
 void InitWaterScale(void);
+void InitCartSimulator(void);
+void InitMixerSimulator(void);
 
 void InertScaleSimulator(void);
 void CementScaleSimulator(void);
 void WaterScaleSimulator(void);
+void CartSimulator(void);
+void MixerSimulator(void);
 
 #endif
