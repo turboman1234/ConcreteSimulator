@@ -846,6 +846,7 @@ void CartSimulator(void)
             SetDigitalOutput(SKIP_CART_READY_OUTPUT, cartIsReadyFbk);
             SetDigitalOutput(SKIP_CART_UP_OUTPUT, cartIsUpFbk);
             
+            cartIsEmpty = TRUE;
             cartIsInSteadyState = TRUE;
             
             //read input commands
