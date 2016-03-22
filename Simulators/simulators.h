@@ -25,12 +25,23 @@
 #define WATER_SCALE                             ModBusSlaves[1]
 #define CONCRETE_SCALE                          DAC_1
 
+//LEDs
+#define INERT_SCALE_READY_LED                   LED_1
+#define CEMENT_SCALE_READY_LED                  LED_2
+#define WATER_SCALE_READY_LED                   LED_3
+#define CART_IS_DOWN_LED                        LED_4
+#define CART_IS_READY_LED                       LED_5
+#define CART_IS_UP_LED                          LED_6
+#define MIXER_IS_CLOSED_LED                     LED_7
+#define ALARM_LED                               LED_8
+
 //Timers
 #define DOSE_SAND_TIMER                         TIMER_1
 #define DOSE_GRAVEL_TIMER                       TIMER_2
 #define DOSE_CEMENT_TIMER                       TIMER_3
 #define DOSE_WATER_TIMER                        TIMER_4
 #define CART_TIMER                              TIMER_5
+#define ALARM_TIMER                             TIMER_6
 
 //Simulators' constants
 #define CART_WEIGHT                             650
@@ -85,6 +96,7 @@ typedef enum{
     eMixerIsOpened
 }tMixerStates;
 
+void InitConcreteSimulatorPeripheral(void);
 void InitInertScaleSimulator(void);
 void InitCementScale(void);
 void InitWaterScale(void);

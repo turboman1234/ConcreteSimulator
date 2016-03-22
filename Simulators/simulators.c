@@ -1,5 +1,7 @@
 #include "stm32f4xx.h"
 #include "stdlib.h"
+#include "rcc.h"
+#include "initPeripheral.h"
 #include "definitions.h"
 #include "userLibrary.h"
 #include "VTimer.h"
@@ -43,6 +45,48 @@ BOOL cartIsEmpty;
 BOOL cartIsInSteadyState;
 unsigned char secondsBetweenStates;
 unsigned char lastMixerCmd;
+unsigned char alarmLedState = OFF;
+
+void InitConcreteSimulatorPeripheral(void)
+{
+    InitRCC();
+    InitVTimers();
+    
+    //Init Inputs
+    InitInput(DOSE_SAND_INPUT);
+    InitInput(DOSE_GRAVEL_INPUT);
+    InitInput(DOSE_CEMENT_INPUT);
+    InitInput(DOSE_WATER_INPUT);
+    InitInput(EMPTY_CEMENT_INPUT);
+    InitInput(EMPTY_WATER_INPUT);
+    InitInput(OPEN_CLOSE_MIXER_INPUT);
+    InitInput(SKIP_CART_UP_INPUT);
+    InitInput(SKIP_CART_DOWN_INPUT);
+        
+    //Init Outputs
+    InitOutput(EMPTY_CEMENT_OUTPUT);
+    InitOutput(EMPTY_WATER_OUTPUT);
+    InitOutput(OPEN_CLOSE_MIXER_OUTPUT);
+    InitOutput(SKIP_CART_UP_OUTPUT);
+    InitOutput(SKIP_CART_DOWN_OUTPUT);
+    InitOutput(SKIP_CART_READY_OUTPUT);
+    InitOutput(EMRGENCY_STOP_BUTTON_OUTPUT);// it has to be implement emergency button work
+    InitOutput(LOOSE_SKIP_CART_ROPE_OUTPUT);
+    
+    //Init LEDs
+    InitLED(INERT_SCALE_READY_LED);
+    InitLED(CEMENT_SCALE_READY_LED);
+    InitLED(WATER_SCALE_READY_LED);
+    InitLED(CART_IS_DOWN_LED);
+    InitLED(CART_IS_READY_LED);
+    InitLED(CART_IS_UP_LED);
+    InitLED(MIXER_IS_CLOSED_LED);
+    InitLED(ALARM_LED);
+    
+    InitNewMBSlaveDevices();
+    MBInitHardwareAndProtocol();
+    
+}
 
 void InitCementScale(void)
 {
@@ -405,7 +449,19 @@ void InertScaleSimulator(void)
             //Print message to display and wait for restart simulator
             looseSkipCartRopeFbk = ON;
             SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
-            while(1);
+            
+            SetVTimerValue(ALARM_TIMER, T_500_MS);
+            SetLED(ALARM_LED, alarmLedState);
+            while(1)
+            {
+                if(IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
+                {
+                    alarmLedState = !alarmLedState;
+                    SetLED(ALARM_LED, alarmLedState);
+                    SetVTimerValue(ALARM_TIMER, T_500_MS);
+                }
+            }
+            
             break;
         }
     }
@@ -592,7 +648,7 @@ void WaterScaleSimulator(void)
             {
                 waterScaleState = eCalming;
                 
-                waterScaleValue = rand() % WATER_MAX_TAIL_LENGHT;
+                waterScaleValue = waterScaleValue + rand() % WATER_MAX_TAIL_LENGHT;
             }
             
             break;
@@ -869,7 +925,17 @@ void CartSimulator(void)
     case eAlarm:
         {
             //must wait until reset system
-            while(1);
+            SetVTimerValue(ALARM_TIMER, T_500_MS);
+            SetLED(ALARM_LED, alarmLedState);
+            while(1)
+            {
+                if(IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
+                {
+                    alarmLedState = !alarmLedState;
+                    SetLED(ALARM_LED, alarmLedState);
+                    SetVTimerValue(ALARM_TIMER, T_500_MS);
+                }
+            }
             break;
         }
     }
