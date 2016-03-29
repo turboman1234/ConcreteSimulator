@@ -30,10 +30,10 @@
 #define CEMENT_SCALE_READY_LED                  LED_2
 #define WATER_SCALE_READY_LED                   LED_3
 #define CART_IS_DOWN_LED                        LED_4
-#define CART_IS_READY_LED                       LED_5
-#define CART_IS_UP_LED                          LED_6
-#define MIXER_IS_CLOSED_LED                     LED_7
-#define ALARM_LED                               LED_8
+#define CART_IS_UP_LED                          LED_5
+#define MIXER_IS_CLOSED_LED                     LED_6
+#define ALARM_LED_1                             LED_7
+#define ALARM_LED_2                             LED_8
 
 //Timers
 #define DOSE_SAND_TIMER                         TIMER_1
@@ -45,16 +45,29 @@
 
 //Simulators' constants
 #define CART_WEIGHT                             650
-#define SAND_VELOCITY                           2
-#define SAND_MAX_TAIL_LENGHT                    5                       
-#define GRAVEL_VELOCITY                         4
-#define GRAVEL_MAX_TAIL_LENGHT                  7
+#define SAND_VELOCITY                           5
+#define SAND_MAX_TAIL_LENGHT                    10                       
+#define GRAVEL_VELOCITY                         10
+#define GRAVEL_MAX_TAIL_LENGHT                  20
 #define CEMENT_VELOCITY                         1
 #define CEMENT_MAX_TAIL_LENGHT                  3
 #define WATER_VELOCITY                          2
 #define WATER_MAX_TAIL_LENGHT                   5
 #define MAX_SEC_BETWEEN_DOWN_AND_READY_STATE    10
 #define MAX_SEC_BETWEEN_UP_AND_READY_STATE      5
+#define MAX_CEMENT_SCALE_VALUE                  4000
+#define MAX_WATER_SCALE_VALUE                   4000
+#define MAX_INERT_SCALE_VALUE                   10000
+
+//Error codes
+#define EVERYTHING_IS_OK                        0xFFFF
+#define INERT_SCALE_IS_OVERFILLED               0xA0A0
+#define WATER_SCALE_IS_OVERFILLED               0xB0B0
+#define CEMENT_SCALE_IS_OVERFILLED              0xC0C0
+#define LOOSE_CART_ROPE                         0xD0D0
+
+//Error messages
+
 
 //Types - it is used inductive sensor which return logical 1 when current valve is closed and logical 0 - when it is opened
 #define OPENED                                  OFF
@@ -77,7 +90,8 @@ typedef enum{
     eIdle = 0xB0,
     eDosing,
     eCalming,
-    eEmptying
+    eEmptying,
+    eScaleIsOverfilled
 }tCementAndWaterScaleStates;
 
 //Cart's states
@@ -95,6 +109,7 @@ typedef enum{
     eMixerIsClosed = 0xD0,
     eMixerIsOpened
 }tMixerStates;
+
 
 void InitConcreteSimulatorPeripheral(void);
 void InitInertScaleSimulator(void);
