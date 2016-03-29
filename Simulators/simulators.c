@@ -46,6 +46,7 @@ BOOL cartIsInSteadyState;
 unsigned char secondsBetweenStates;
 unsigned char lastMixerCmd;
 unsigned char alarmLedState = OFF;
+unsigned short inertScaleAlarmIdentifier = EVERYTHING_IS_OK;
 
 void InitConcreteSimulatorPeripheral(void)
 {
@@ -78,10 +79,10 @@ void InitConcreteSimulatorPeripheral(void)
     InitLED(CEMENT_SCALE_READY_LED);
     InitLED(WATER_SCALE_READY_LED);
     InitLED(CART_IS_DOWN_LED);
-    InitLED(CART_IS_READY_LED);
     InitLED(CART_IS_UP_LED);
     InitLED(MIXER_IS_CLOSED_LED);
-    InitLED(ALARM_LED);
+    InitLED(ALARM_LED_1);
+    InitLED(ALARM_LED_2);
     
     InitNewMBSlaveDevices();
     MBInitHardwareAndProtocol();
@@ -156,6 +157,7 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF && (doseSandCmd == ON || doseGravelCmd == ON))
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
             //2. Cart is not on the scale
             else if(cartIsDownFbk == OFF)
@@ -205,8 +207,15 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF)
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
-            //2. Stop dose sand
+            //2. Inert Scale is overfilled
+            else if(currentScaleValue > MAX_INERT_SCALE_VALUE)
+            {
+                inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = INERT_SCALE_IS_OVERFILLED;   
+            }
+            //3. Stop dose sand
             else if(doseSandCmd == OFF)
             {
                 currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT);
@@ -214,7 +223,7 @@ void InertScaleSimulator(void)
                 
                 inertScaleState = eInertScaleCalming;
             }
-            //3. Dose sand and gravel
+            //4. Dose sand and gravel
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
                 SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
@@ -246,8 +255,15 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF)
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
-            //2. Stop dose gravel
+            //2. Inert Scale is overfilled
+            else if(currentScaleValue > MAX_INERT_SCALE_VALUE)
+            {
+                inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = INERT_SCALE_IS_OVERFILLED;   
+            }
+            //3. Stop dose gravel
             else if(doseGravelCmd == OFF)
             {
                 currentScaleValue = currentScaleValue + (rand() % GRAVEL_MAX_TAIL_LENGHT);
@@ -255,7 +271,7 @@ void InertScaleSimulator(void)
                 
                 inertScaleState = eInertScaleCalming;
             }
-            //3. Dose sand and gravel
+            //4. Dose sand and gravel
             else if(doseSandCmd == ON && doseGravelCmd == ON)
             {
                 SetVTimerValue(DOSE_SAND_TIMER, T_500_MS);
@@ -295,8 +311,15 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF)
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
-            //2. Stop dose gravel but still dose sand
+            //2. Inert Scale is overfilled
+            else if(currentScaleValue > MAX_INERT_SCALE_VALUE)
+            {
+                inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = INERT_SCALE_IS_OVERFILLED;   
+            }
+            //3. Stop dose gravel but still dose sand
             else if(doseGravelCmd == OFF && doseSandCmd == ON)
             {
                 currentScaleValue = currentScaleValue + (rand() % GRAVEL_MAX_TAIL_LENGHT);
@@ -306,7 +329,7 @@ void InertScaleSimulator(void)
                 
                 inertScaleState = eInertScaleDoseSand;
             }
-            //3. Stop dose sand but still dose gravel
+            //4. Stop dose sand but still dose gravel
             else if(doseGravelCmd == ON && doseSandCmd == OFF)
             {
                 currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT);
@@ -316,7 +339,7 @@ void InertScaleSimulator(void)
                 
                 inertScaleState = eInertScaleDoseGravel;
             }
-            //4. Stop dose sand and gravel
+            //5. Stop dose sand and gravel
             else if(doseSandCmd == OFF && doseGravelCmd == OFF)
             {
                 currentScaleValue = currentScaleValue + (rand() % SAND_MAX_TAIL_LENGHT) + (rand() % GRAVEL_MAX_TAIL_LENGHT);            
@@ -341,6 +364,7 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF && (doseSandCmd == ON || doseGravelCmd == ON))
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
             //2. Cart is not on the scale
             else if(cartIsDownFbk == OFF)
@@ -385,6 +409,7 @@ void InertScaleSimulator(void)
             if(doseSandCmd == ON || doseGravelCmd == ON)
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
             //2. Cart is down but it is not empty
             else if(cartIsDownFbk == ON && cartIsEmpty == FALSE)
@@ -415,6 +440,7 @@ void InertScaleSimulator(void)
             if(cartIsDownFbk == OFF && (doseSandCmd == ON || doseGravelCmd == ON))
             {
                 inertScaleState = eInertScaleAlarm;
+                inertScaleAlarmIdentifier = LOOSE_CART_ROPE;
             }
             //2. Cart is not on the scale
             else if(cartIsDownFbk == OFF)
@@ -447,17 +473,28 @@ void InertScaleSimulator(void)
     case eInertScaleAlarm:
         {
             //Print message to display and wait for restart simulator
-            looseSkipCartRopeFbk = ON;
-            SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
-            
-            SetVTimerValue(ALARM_TIMER, T_500_MS);
-            SetLED(ALARM_LED, alarmLedState);
+            if(inertScaleAlarmIdentifier == LOOSE_CART_ROPE)
+            {
+                looseSkipCartRopeFbk = ON;
+                SetDigitalOutput(LOOSE_SKIP_CART_ROPE_OUTPUT, looseSkipCartRopeFbk);
+                
+                SetVTimerValue(ALARM_TIMER, T_500_MS);
+                SetLED(ALARM_LED_1, alarmLedState);
+                SetLED(ALARM_LED_2, alarmLedState);
+            }
+            else if(inertScaleAlarmIdentifier == INERT_SCALE_IS_OVERFILLED)
+            {
+                SetLED(ALARM_LED_1, ON);
+                SetLED(ALARM_LED_2, ON);
+            }            
+
             while(1)
             {
-                if(IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
+                if(inertScaleAlarmIdentifier == LOOSE_CART_ROPE && IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
                 {
                     alarmLedState = !alarmLedState;
-                    SetLED(ALARM_LED, alarmLedState);
+                    SetLED(ALARM_LED_1, alarmLedState);
+                    SetLED(ALARM_LED_2, alarmLedState);
                     SetVTimerValue(ALARM_TIMER, T_500_MS);
                 }
             }
@@ -468,6 +505,7 @@ void InertScaleSimulator(void)
     
     INERT_SCALE.holdingRegisters[0] = currentScaleValue;
 }
+
 
 void CementScaleSimulator(void)
 {
@@ -523,7 +561,12 @@ void CementScaleSimulator(void)
             {
                 cementScaleState = eEmptying;
             }
-            //2. Stop cement dosing
+            //2. If cement scale is overfilled
+            else if(cementScaleValue > MAX_CEMENT_SCALE_VALUE)
+            {
+                cementScaleState = eScaleIsOverfilled;
+            }
+            //3. Stop cement dosing
             else if(doseCementCmd == OFF)
             {
                 cementScaleState = eCalming;
@@ -582,6 +625,15 @@ void CementScaleSimulator(void)
                 cementScaleState = eIdle;
             }
             
+            break;
+        }
+    case eScaleIsOverfilled:
+        {
+            while(1)
+            {
+                SetLED(ALARM_LED_1, ON);
+                SetLED(ALARM_LED_2, OFF);   
+            }
             break;
         }
     }
@@ -643,6 +695,11 @@ void WaterScaleSimulator(void)
             {
                 waterScaleState = eEmptying;
             }
+            //2. If water scale is overfilled
+            else if(waterScaleValue > MAX_WATER_SCALE_VALUE)
+            {
+                waterScaleState = eScaleIsOverfilled;
+            }
             //2. Stop water dosing
             else if(doseWaterCmd == OFF)
             {
@@ -702,6 +759,15 @@ void WaterScaleSimulator(void)
                 waterScaleState = eIdle;
             }
             
+            break;
+        }
+    case eScaleIsOverfilled:
+        {
+            while(1)
+            {
+                SetLED(ALARM_LED_1, OFF);
+                SetLED(ALARM_LED_2, ON);   
+            }
             break;
         }
     }
@@ -925,15 +991,17 @@ void CartSimulator(void)
     case eAlarm:
         {
             //must wait until reset system
-            SetVTimerValue(ALARM_TIMER, T_500_MS);
-            SetLED(ALARM_LED, alarmLedState);
+            SetVTimerValue(ALARM_TIMER, T_1_S);
+            SetLED(ALARM_LED_1, alarmLedState);
+            SetLED(ALARM_LED_2, alarmLedState);
             while(1)
             {
                 if(IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
                 {
                     alarmLedState = !alarmLedState;
-                    SetLED(ALARM_LED, alarmLedState);
-                    SetVTimerValue(ALARM_TIMER, T_500_MS);
+                    SetLED(ALARM_LED_1, alarmLedState);
+                    SetLED(ALARM_LED_2, alarmLedState);
+                    SetVTimerValue(ALARM_TIMER, T_1_S);
                 }
             }
             break;
