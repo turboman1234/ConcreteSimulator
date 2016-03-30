@@ -73,6 +73,7 @@ void InitConcreteSimulatorPeripheral(void)
     InitOutput(SKIP_CART_READY_OUTPUT);
     InitOutput(EMRGENCY_STOP_BUTTON_OUTPUT);// it has to be implement emergency button work
     InitOutput(LOOSE_SKIP_CART_ROPE_OUTPUT);
+    InitDAC(CONCRETE_SCALE, 0);
     
     //Init LEDs
     InitLED(INERT_SCALE_READY_LED);
@@ -629,11 +630,11 @@ void CementScaleSimulator(void)
         }
     case eScaleIsOverfilled:
         {
-            while(1)
-            {
-                SetLED(ALARM_LED_1, ON);
-                SetLED(ALARM_LED_2, OFF);   
-            }
+            SetLED(ALARM_LED_1, ON);
+            SetLED(ALARM_LED_2, OFF); 
+            
+            while(1);
+            
             break;
         }
     }
@@ -763,11 +764,11 @@ void WaterScaleSimulator(void)
         }
     case eScaleIsOverfilled:
         {
-            while(1)
-            {
-                SetLED(ALARM_LED_1, OFF);
-                SetLED(ALARM_LED_2, ON);   
-            }
+            SetLED(ALARM_LED_1, OFF);
+            SetLED(ALARM_LED_2, ON);
+            
+            while(1);
+            
             break;
         }
     }
