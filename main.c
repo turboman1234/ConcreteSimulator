@@ -50,6 +50,7 @@ int main()
         CementScaleSimulator();
         WaterScaleSimulator();
         MixerSimulator();
+        SetLEDs();
     }
     
     

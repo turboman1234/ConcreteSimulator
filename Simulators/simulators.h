@@ -1,7 +1,7 @@
 #ifndef __SIMULATORS_H
 #define __SIMULATORS_H
 
-//Inputs
+//Inputs (controlled signals)
 #define DOSE_SAND_INPUT                         INPUT_1
 #define DOSE_GRAVEL_INPUT                       INPUT_2
 #define DOSE_CEMENT_INPUT                       INPUT_3
@@ -12,26 +12,25 @@
 #define SKIP_CART_UP_INPUT                      INPUT_8
 #define SKIP_CART_DOWN_INPUT                    INPUT_9
 
-//Outputs
+//Outputs (sensors' signals)
 #define EMPTY_CEMENT_OUTPUT                     OUTPUT_1
 #define EMPTY_WATER_OUTPUT                      OUTPUT_2        
 #define OPEN_CLOSE_MIXER_OUTPUT                 OUTPUT_3
 #define SKIP_CART_UP_OUTPUT                     OUTPUT_4
 #define SKIP_CART_DOWN_OUTPUT                   OUTPUT_5
 #define SKIP_CART_READY_OUTPUT                  OUTPUT_6
-#define EMRGENCY_STOP_BUTTON_OUTPUT             OUTPUT_7
-#define LOOSE_SKIP_CART_ROPE_OUTPUT             OUTPUT_8
+#define LOOSE_SKIP_CART_ROPE_OUTPUT             OUTPUT_7
 #define INERT_SCALE                             ModBusSlaves[0]
 #define WATER_SCALE                             ModBusSlaves[1]
 #define CONCRETE_SCALE                          DAC_1
 
 //LEDs
-#define INERT_SCALE_READY_LED                   LED_1
-#define CEMENT_SCALE_READY_LED                  LED_2
-#define WATER_SCALE_READY_LED                   LED_3
+#define CEMENT_VALVE_LED                        LED_1
+#define WATER_VALVE_LED                         LED_2
+#define MIXER_VALVE_LED                         LED_3
 #define CART_IS_DOWN_LED                        LED_4
-#define CART_IS_UP_LED                          LED_5
-#define MIXER_IS_CLOSED_LED                     LED_6
+#define CART_IS_READY_LED                       LED_5
+#define CART_IS_UP_LED                          LED_6
 #define ALARM_LED_1                             LED_7
 #define ALARM_LED_2                             LED_8
 
@@ -123,5 +122,6 @@ void CementScaleSimulator(void);
 void WaterScaleSimulator(void);
 void CartSimulator(void);
 void MixerSimulator(void);
+void SetLEDs(void);
 
 #endif

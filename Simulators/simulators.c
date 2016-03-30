@@ -29,7 +29,6 @@ unsigned char openCloseMixerFbk;
 unsigned char cartIsUpFbk;
 unsigned char cartIsReadyFbk;
 unsigned char cartIsDownFbk;
-unsigned char emergencyStopBtnFbk;
 unsigned char looseSkipCartRopeFbk;
 short currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
 
@@ -71,17 +70,16 @@ void InitConcreteSimulatorPeripheral(void)
     InitOutput(SKIP_CART_UP_OUTPUT);
     InitOutput(SKIP_CART_DOWN_OUTPUT);
     InitOutput(SKIP_CART_READY_OUTPUT);
-    InitOutput(EMRGENCY_STOP_BUTTON_OUTPUT);// it has to be implement emergency button work
     InitOutput(LOOSE_SKIP_CART_ROPE_OUTPUT);
     InitDAC(CONCRETE_SCALE, 0);
     
     //Init LEDs
-    InitLED(INERT_SCALE_READY_LED);
-    InitLED(CEMENT_SCALE_READY_LED);
-    InitLED(WATER_SCALE_READY_LED);
+    InitLED(CEMENT_VALVE_LED);
+    InitLED(WATER_VALVE_LED);
+    InitLED(MIXER_VALVE_LED);
     InitLED(CART_IS_DOWN_LED);
+    InitLED(CART_IS_READY_LED);
     InitLED(CART_IS_UP_LED);
-    InitLED(MIXER_IS_CLOSED_LED);
     InitLED(ALARM_LED_1);
     InitLED(ALARM_LED_2);
     
@@ -1054,5 +1052,13 @@ void MixerSimulator(void)
     }
 }
 
-
+void SetLEDs(void)
+{
+    SetLED(CEMENT_VALVE_LED, emptyCementValve);
+    SetLED(WATER_VALVE_LED, emptyWaterValve);
+    SetLED(MIXER_VALVE_LED, openCloseMixerFbk);
+    SetLED(CART_IS_DOWN_LED, cartIsDownFbk);
+    SetLED(CART_IS_READY_LED, cartIsReadyFbk);
+    SetLED(CART_IS_UP_LED, cartIsUpFbk);
+}
 
