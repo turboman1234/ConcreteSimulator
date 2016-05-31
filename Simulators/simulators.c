@@ -30,7 +30,7 @@ unsigned char cartIsUpFbk;
 unsigned char cartIsReadyFbk;
 unsigned char cartIsDownFbk;
 unsigned char looseSkipCartRopeFbk;
-short currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
+extern short currentScaleValue = 0, oldScaleValue = 0, cementScaleValue = 0, waterScaleValue = 0;
 
 //State Variable
 tInertScaleStates inertScaleState;
