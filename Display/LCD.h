@@ -46,6 +46,9 @@
 #define OUTPUT 33
 #define INPUT 44
 
+//constants
+#define ROW_LENGHT              20
+
 /* STM32F4_DISCOVERY_LOW_LEVEL Exported_Types
     */
     
@@ -95,7 +98,8 @@ void LCDwrite4bits(uint8_t);
 void LCDwrite8bits(uint8_t);
 void LCDpulseEnable();
 
-uint16_t LCDprint(const uint8_t * s);
+void LCDTask(void);
+uint16_t LCDprint(char* s);
 uint16_t LCDStrWrite(const uint8_t *buffer, uint16_t size);
 
 

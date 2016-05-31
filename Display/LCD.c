@@ -14,9 +14,13 @@ LiquidCristal.cpp
 
 
 extern RCC_ClocksTypeDef MYCLOCKS;
+extern short currentScaleValue, oldScaleValue, cementScaleValue, waterScaleValue;
 
 size_t LCDwrite(uint8_t);
 void LCDcommand(uint8_t);
+
+//Row arrays for more friendly writting
+char Row1[ROW_LENGHT], Row2[ROW_LENGHT], Row3[ROW_LENGHT], Row4[ROW_LENGHT];
 
 /*
 STM32F4_DISCOVERY_LOW_LEVEL Exported_Types
@@ -99,7 +103,7 @@ void InitLCD(void)
     LCDnoDisplay();
     LCDdisplay();
     delayMicroseconds(50000);
-    SetVTimerValue(LCD_REFRESH_TIMER, 10000);
+    SetVTimerValue(LCD_REFRESH_TIMER, T_1_S);
 }
 
 
@@ -496,7 +500,25 @@ uint16_t LCDStrWrite(const uint8_t *buffer, uint16_t size)
 }
 
 
-uint16_t LCDprint(const uint8_t * s)
+void LCDTask(void)
 {
-    return LCDStrWrite(s, strlen((char*)s));
+    char Buffer [4 * ROW_LENGHT];
+    
+    sprintf(Row1, "Cement scale: %d", cementScaleValue);
+    sprintf(Row2, "Water scale: %d", waterScaleValue);
+    sprintf(Row3, "Inert scale: %d", currentScaleValue);
+
+    strcpy(Buffer, Row1);
+    strcat(Buffer, Row2);
+    strcat(Buffer, Row3);
+    
+    LCDclear();
+    LCDprint(Buffer);
 }
+
+uint16_t LCDprint(char* s)
+{
+    uint16_t sLenght = (uint16_t)strlen(s);
+    return LCDStrWrite((const uint8_t *)s, sLenght);
+}
+

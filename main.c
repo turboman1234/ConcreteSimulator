@@ -53,9 +53,8 @@ int main()
         
         if(IsVTimerElapsed(LCD_REFRESH_TIMER) == ELAPSED)
         {
-//            LCDprint("Text1Text2Text3Text4Text5Text6Text7Txet8Text9Text0abcdefghijklmnopqrstuvwxyz!@#$");
-            LCDprint((const uint8_t *)"Cement scale: 123.45Water scale: 456.78 Inert scale: 1111.25Mix time rest: 4h23m");
-            SetVTimerValue(LCD_REFRESH_TIMER, 10000);
+            LCDTask();
+            SetVTimerValue(LCD_REFRESH_TIMER, T_1_S);
         }
         
 //        TestInputsAndLeds();
