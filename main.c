@@ -12,6 +12,7 @@
 #include "mbslave.h"
 #include "rs232.h"
 #include "simulators.h"
+#include "LCD.h"
 
 extern RCC_ClocksTypeDef MYCLOCKS;
 extern ModBusSlaveUnit ModBusSlaves[MAX_MODBUS_SLAVE_DEVICES];
@@ -25,7 +26,6 @@ extern ModBusSlaveUnit ModBusSlaves[MAX_MODBUS_SLAVE_DEVICES];
 int main()
 {   
     InitRCC();
-    
     InitNewMBSlaveDevices();
     MBInitHardwareAndProtocol();
     InitVTimers();
@@ -36,6 +36,7 @@ int main()
     InitWaterScale();
     InitCartSimulator();
     InitMixerSimulator();
+    InitLCD();
     
 //    InitInputsAndLEDs();    
     
@@ -49,6 +50,13 @@ int main()
         SetLEDs();
         MBPollSlave();
         MB_slave_transmit();
+        
+        if(IsVTimerElapsed(LCD_REFRESH_TIMER) == ELAPSED)
+        {
+//            LCDprint("Text1Text2Text3Text4Text5Text6Text7Txet8Text9Text0abcdefghijklmnopqrstuvwxyz!@#$");
+            LCDprint((const uint8_t *)"Cement scale: 123.45Water scale: 456.78 Inert scale: 1111.25Mix time rest: 4h23m");
+            SetVTimerValue(LCD_REFRESH_TIMER, 10000);
+        }
         
 //        TestInputsAndLeds();
     }
