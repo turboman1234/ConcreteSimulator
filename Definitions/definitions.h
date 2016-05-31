@@ -98,6 +98,7 @@
 #define RS232_TIMER             76
 #define MB_MASTER_TIMER         77
 #define MB_SLAVE_TIMER          78
+#define LCD_REFRESH_TIMER       79
 
 //Macros for digital IO, switches, LEDs
 #define ON                      1
@@ -153,7 +154,8 @@
                                                 ((TIMER_ID) == TIMER_16)  || \
                                                 ((TIMER_ID) == RS232_TIMER) || \
                                                 ((TIMER_ID) == MB_MASTER_TIMER) || \
-                                                ((TIMER_ID) == MB_SLAVE_TIMER))
+                                                ((TIMER_ID) == MB_SLAVE_TIMER) || \
+                                                ((TIMER_ID) == LCD_REFRESH_TIMER))
 
 #define IS_USART_ID_VALID (usartID)             (((usartID) == USART_2) || \
                                                  ((usartID) == USART_3))

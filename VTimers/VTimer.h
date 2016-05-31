@@ -2,7 +2,7 @@
 #define __VTIMER_H
 
 #define mGetTimerCounter()		GetTimerCounter()
-#define MAX_TIMER_COUNT                 19
+#define MAX_TIMER_COUNT                 20
 
 void InitVTimers(void);
 void EnableVTimers(void);

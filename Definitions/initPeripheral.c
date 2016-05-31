@@ -2,6 +2,7 @@
 #include "definitions.h"
 #include "adc.h"
 #include "dac.h"
+#include "LCD.h"
 #include "initPeripheral.h"
 
 
@@ -821,5 +822,4 @@ void InitDAC(int dacID, int initValue)
         break;
     }
 }
-
 
