@@ -47,7 +47,7 @@
 #define INPUT 44
 
 //constants
-#define ROW_LENGHT              20
+#define ROW_LENGHT              21
 
 /* STM32F4_DISCOVERY_LOW_LEVEL Exported_Types
     */

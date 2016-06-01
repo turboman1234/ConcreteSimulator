@@ -99,11 +99,27 @@ init(1, rs, rw, enable, d0, d1, d2, d3, 0, 0, 0, 0);
 
 void InitLCD(void)
 {
+    char Buffer [81];
+    
     LCDSet(RS,Enb,B0,B1,B2,B3);
     LCDnoDisplay();
     LCDdisplay();
     delayMicroseconds(50000);
     SetVTimerValue(LCD_REFRESH_TIMER, T_1_S);
+    
+    //Write text
+    sprintf(Row1, "Inert scale:  %6d", currentScaleValue);
+    sprintf(Row2, "Cement scale: %6d", cementScaleValue);
+    sprintf(Row3, "Water scale:  %6d", waterScaleValue);
+    sprintf(Row4, "Mix time:     %2dh%2dm", 2, 35);
+    
+    strcpy(Buffer, Row1);
+    strcat(Buffer, Row3);
+    strcat(Buffer, Row2);
+    strcat(Buffer, Row4);
+    Buffer[80] = '\0';
+    
+    LCDprint(Buffer);
 }
 
 
@@ -502,18 +518,24 @@ uint16_t LCDStrWrite(const uint8_t *buffer, uint16_t size)
 
 void LCDTask(void)
 {
-    char Buffer [4 * ROW_LENGHT];
+    char buffer [7];
     
-    sprintf(Row1, "Cement scale: %d", cementScaleValue);
-    sprintf(Row2, "Water scale: %d", waterScaleValue);
-    sprintf(Row3, "Inert scale: %d", currentScaleValue);
-
-    strcpy(Buffer, Row1);
-    strcat(Buffer, Row2);
-    strcat(Buffer, Row3);
+    sprintf(buffer, "%6d", currentScaleValue);
+    LCDsetCursor(14, 0); 
+    LCDprint(buffer);
     
-    LCDclear();
-    LCDprint(Buffer);
+    sprintf(buffer, "%6d", cementScaleValue);
+    LCDsetCursor(14, 1); 
+    LCDprint(buffer);
+    
+    sprintf(buffer, "%6d", waterScaleValue);
+    LCDsetCursor(14, 2); 
+    LCDprint(buffer);
+    
+    sprintf(buffer, "%2dh%2dm", 2, 35);
+    LCDsetCursor(14, 3); 
+    LCDprint(buffer);
+    
 }
 
 uint16_t LCDprint(char* s)
