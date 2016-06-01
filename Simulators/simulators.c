@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "stm32f4xx.h"
 #include "stdlib.h"
 #include "rcc.h"
@@ -6,10 +7,12 @@
 #include "userLibrary.h"
 #include "VTimer.h"
 #include "mbslave.h"
+#include "LCD.h"
 #include "simulators.h"
 
 
 extern ModBusSlaveUnit ModBusSlaves[MAX_MODBUS_SLAVE_DEVICES];
+char SimulatorStatusMessage[21] = {'O', 'k', '\0'};
 
 //Inputs
 unsigned char doseSandCmd;
@@ -480,11 +483,19 @@ void InertScaleSimulator(void)
                 SetVTimerValue(ALARM_TIMER, T_500_MS);
                 SetLED(ALARM_LED_1, alarmLedState);
                 SetLED(ALARM_LED_2, alarmLedState);
+                
+                sprintf(SimulatorStatusMessage, "Sim. status: %5s%2d", "ALARM", LOOSE_CART_ROPE);
+                LCDsetCursor(0, 3); 
+                LCDprint(SimulatorStatusMessage);
             }
             else if(inertScaleAlarmIdentifier == INERT_SCALE_IS_OVERFILLED)
             {
                 SetLED(ALARM_LED_1, ON);
                 SetLED(ALARM_LED_2, ON);
+                
+                sprintf(SimulatorStatusMessage, "Sim. status: %5s%2d", "ALARM", INERT_SCALE_IS_OVERFILLED);
+                LCDsetCursor(0, 3); 
+                LCDprint(SimulatorStatusMessage);
             }            
 
             while(1)
@@ -631,9 +642,12 @@ void CementScaleSimulator(void)
             SetLED(ALARM_LED_1, ON);
             SetLED(ALARM_LED_2, OFF); 
             
-            while(1);
+            sprintf(SimulatorStatusMessage, "Sim. status: %5s%2d", "ALARM", CEMENT_SCALE_IS_OVERFILLED);
+            LCDsetCursor(0, 3); 
+            LCDprint(SimulatorStatusMessage);
             
-            break;
+            while(1);        
+
         }
     }
     
@@ -765,9 +779,11 @@ void WaterScaleSimulator(void)
             SetLED(ALARM_LED_1, OFF);
             SetLED(ALARM_LED_2, ON);
             
-            while(1);
+            sprintf(SimulatorStatusMessage, "Sim. status: %5s%2d", "ALARM", WATER_SCALE_IS_OVERFILLED);
+            LCDsetCursor(0, 3); 
+            LCDprint(SimulatorStatusMessage);
             
-            break;
+            while(1);
         }
     }
     
@@ -993,6 +1009,11 @@ void CartSimulator(void)
             SetVTimerValue(ALARM_TIMER, T_1_S);
             SetLED(ALARM_LED_1, alarmLedState);
             SetLED(ALARM_LED_2, alarmLedState);
+            
+            sprintf(SimulatorStatusMessage, "Sim. status: %5s%2d", "ALARM", CART_COMMAND_ERROR);
+            LCDsetCursor(0, 3); 
+            LCDprint(SimulatorStatusMessage);
+            
             while(1)
             {
                 if(IsVTimerElapsed(ALARM_TIMER) == ELAPSED)
@@ -1000,6 +1021,7 @@ void CartSimulator(void)
                     alarmLedState = !alarmLedState;
                     SetLED(ALARM_LED_1, alarmLedState);
                     SetLED(ALARM_LED_2, alarmLedState);
+                    
                     SetVTimerValue(ALARM_TIMER, T_1_S);
                 }
             }

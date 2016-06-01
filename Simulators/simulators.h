@@ -60,10 +60,11 @@
 
 //Error codes
 #define EVERYTHING_IS_OK                        0xFFFF
-#define INERT_SCALE_IS_OVERFILLED               0xA0A0
-#define WATER_SCALE_IS_OVERFILLED               0xB0B0
-#define CEMENT_SCALE_IS_OVERFILLED              0xC0C0
-#define LOOSE_CART_ROPE                         0xD0D0
+#define INERT_SCALE_IS_OVERFILLED               11
+#define WATER_SCALE_IS_OVERFILLED               22
+#define CEMENT_SCALE_IS_OVERFILLED              33
+#define LOOSE_CART_ROPE                         44
+#define CART_COMMAND_ERROR                      55
 
 //Error messages
 
