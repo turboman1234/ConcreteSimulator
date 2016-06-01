@@ -51,7 +51,7 @@ void InitRCC(void)
     // Show current FREQ in Hz (for DEBUG purposes)
     RCC_GetClocksFreq(&MYCLOCKS);
     
-    //SystemCoreClockUpdate();
+    SystemCoreClockUpdate();
 }
 
 
