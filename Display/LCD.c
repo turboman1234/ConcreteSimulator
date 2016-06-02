@@ -105,7 +105,22 @@ void InitLCD(void)
     LCDnoDisplay();
     LCDdisplay();
     delayMicroseconds(50000);
-    SetVTimerValue(LCD_REFRESH_TIMER, T_1_S);
+    
+    // Write congrats
+    sprintf(Row1, "       Hello!       ");
+    sprintf(Row2, "     I am TUS-16    ");
+    sprintf(Row3, " concrete simulator ");
+    sprintf(Row4, "       Enjoy!       ");
+    
+    strcpy(Buffer, Row1);
+    strcat(Buffer, Row3);
+    strcat(Buffer, Row2);
+    strcat(Buffer, Row4);
+    Buffer[80] = '\0';
+    
+    LCDprint(Buffer);
+    
+    delayMicroseconds(500000);
     
     //Write text
     sprintf(Row1, "Inert scale:  %4dkg", currentScaleValue);
@@ -120,6 +135,8 @@ void InitLCD(void)
     Buffer[80] = '\0';
     
     LCDprint(Buffer);
+    
+    SetVTimerValue(LCD_REFRESH_TIMER, T_1_S);
 }
 
 
