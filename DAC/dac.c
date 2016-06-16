@@ -17,7 +17,7 @@ void Init_DAC_1(int initValue)
     DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
     
     
-    DAC_DeInit(); 
+    //DAC_DeInit(); 
     DAC_Init(DAC_Channel_1, &DAC_InitStructure);
     DAC_Cmd(DAC_Channel_1, ENABLE);
     DAC_SetChannel1Data(DAC_Align_12b_R, initValue);
@@ -42,7 +42,7 @@ void Init_DAC_2(int initValue)
     DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
     
     
-    DAC_DeInit(); 
+    //DAC_DeInit(); 
     DAC_Init(DAC_Channel_2, &DAC_InitStructure);
     DAC_Cmd(DAC_Channel_2, ENABLE);
     DAC_SetChannel2Data(DAC_Align_12b_R, initValue);
